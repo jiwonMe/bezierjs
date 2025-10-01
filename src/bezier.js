@@ -37,4 +37,3 @@ setBezierClass(Bezier);
 export { KirbError, ErrorCodes } from "./utils/errors.js";
 
 export { Bezier };
-

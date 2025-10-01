@@ -8,12 +8,13 @@
 ## ✨ Features
 
 - 🎯 **2D & 3D Support** - Full support for 2D and 3D Bezier curves
-- 📦 **Modular Architecture** - 14 focused modules, all under 300 lines
+- 📦 **Modular Architecture** - 15 focused modules, all under 300 lines
 - 🚀 **Modern ESM** - ES Module first with CommonJS support
+- 🔷 **TypeScript Support** - Full type definitions included
 - 🔧 **Comprehensive API** - Everything you need for Bezier curve operations
 - 📐 **Geometric Operations** - Normals, curvatures, intersections, projections
 - 🎨 **Offset & Outline** - Generate parallel curves and outlines
-- ⚡ **Fast & Lightweight** - Only 21KB minified
+- ⚡ **Fast & Lightweight** - Only 22KB minified
 
 ## 📦 Installation
 
@@ -31,6 +32,7 @@ yarn add kirb
 
 ## 🚀 Quick Start
 
+### JavaScript
 ```javascript
 import { Bezier } from 'kirb';
 
@@ -54,6 +56,28 @@ const extrema = curve.extrema();
 
 // Get bounding box
 const bbox = curve.bbox();
+```
+
+### TypeScript
+```typescript
+import { Bezier, KirbError, ErrorCodes, type Point, type BoundingBox } from 'kirb';
+
+// Full type safety
+const curve = new Bezier(0, 0, 100, 25, 200, 75, 300, 100);
+
+// Type inference
+const point: Point = curve.get(0.5);
+const bbox: BoundingBox = curve.bbox();
+
+// Error handling with types
+try {
+  curve.offsetPoint(2, 10);
+} catch (e) {
+  if (e instanceof KirbError) {
+    console.log(e.code);     // Typed!
+    console.log(e.details);  // Typed!
+  }
+}
 ```
 
 ### 🆕 New API Examples

@@ -1,11 +1,13 @@
 /**
  * Custom error class for Kirb library
+ * @class KirbError
+ * @extends Error
  */
 export class KirbError extends Error {
   /**
    * @param {string} message - Error message
    * @param {string} code - Error code
-   * @param {Object} details - Additional error details
+   * @param {Record<string, any>} details - Additional error details
    */
   constructor(message, code, details = {}) {
     super(message);
@@ -17,6 +19,7 @@ export class KirbError extends Error {
 
 /**
  * Error codes used throughout the library
+ * @enum {string}
  */
 export const ErrorCodes = {
   INVALID_CURVE: "INVALID_CURVE",

@@ -6,6 +6,12 @@ All notable changes to this project will be documented in this file.
 
 ### ✨ Added
 
+#### TypeScript Support
+- **Full type definitions** - Complete `.d.ts` files for all APIs
+- **Type inference** - Smart autocomplete in TypeScript projects
+- **Type safety** - Catch errors at compile time
+- **JSDoc annotations** - Type hints in JavaScript projects
+
 #### New Methods (100% Backward Compatible)
 - **`offsetPoint(t, distance)`** - Get offset point with metadata (clearer than `offset()`)
 - **`offsetCurve(distance)`** - Create offset curve (clearer than `offset()`)
