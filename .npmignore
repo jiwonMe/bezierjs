@@ -1,9 +1,17 @@
-# Ignore github things
-.github
-.gitignore
+# Source files (we ship dist/)
+test/
+docs/
 
-# Ignore documentation
-docs
+# Development files
+.prettierrc
+.eslintrc
+.github/
+*.log
+.DS_Store
 
-# Ignore tests
-test
+# Keep these
+!dist/
+!src/
+!README.md
+!LICENSE.md
+!package.json

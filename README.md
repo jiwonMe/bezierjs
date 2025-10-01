@@ -1,79 +1,138 @@
-# Bezier.js
+# kirb 🎨
 
-:warning:
-**This package needs your support to stay maintained.** If you work for an organization
-whose website is better off using Bezier.js than rolling its own code
-solution, please consider talking to your manager to help
-[fund this project](https://www.paypal.com/donate/?cmd=_s-xclick&hosted_button_id=QPRDLNGDANJSW).
-Open Source is free to use, but certainly not free to develop. If you have the
-means to reward those whose work you rely on, please consider doing so.
-:warning:
+> Modern modular Bezier curve library for 2D and 3D geometric operations
 
-An ES Module based library for Node.js and browsers for doing (quadratic and cubic) Bezier curve work.
+[![npm version](https://img.shields.io/npm/v/kirb.svg)](https://www.npmjs.com/package/kirb)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-For a Demo and the API, hit up either [pomax.github.io/bezierjs](http://pomax.github.io/bezierjs) or read the souce (`./src` for the library code, start at `bezier.js`).
+## ✨ Features
 
-**Note:** if you're looking for the legacy ES5 version of this library, you will have to install v2.6.1 or below. However, be aware that the ES5 version will not have any fixes/updates back-ported.
+- 🎯 **2D & 3D Support** - Full support for 2D and 3D Bezier curves
+- 📦 **Modular Architecture** - 14 focused modules, all under 300 lines
+- 🚀 **Modern ESM** - ES Module first with CommonJS support
+- 🔧 **Comprehensive API** - Everything you need for Bezier curve operations
+- 📐 **Geometric Operations** - Normals, curvatures, intersections, projections
+- 🎨 **Offset & Outline** - Generate parallel curves and outlines
+- ⚡ **Fast & Lightweight** - Only 21KB minified
 
-## Installation
+## 📦 Installation
 
-`npm install bezier-js` will add bezier.js to your dependencies, remember to add `--save` or `--save-dev` if you need that to be persistent of course.
-
-### Without using a package manager
-
-There is a rolled-up version of `bezier.js` in the `dist` directory. Just [download that](https://raw.githubusercontent.com/Pomax/bezierjs/master/dist/bezier.js) and drop it in your JS asset dir.
-
-## In Node, as dependency
-
-About as simple as it gets:
-
-```
-import { Bezier } from "bezier-js";
-
-const b = new Bezier(...);
+```bash
+npm install kirb
 ```
 
-Or, using the legacy CommonJS syntax:
-
-```
-const Bezier = require("bezier-js");
-
-const b = new Bezier(...);
+```bash
+pnpm add kirb
 ```
 
-### Node support matrix
-
-| Node Version | Require Supported | Import Supported                    |
-| ------------ | ----------------- | ----------------------------------- |
-| v12.0.0      | Yes               | Yes <sup>Experimental Flag</sup>    |
-| v12.14.1     | Yes               | No <sup>Experimental Flag</sup>     |
-| v12.17.0     | Yes               | Yes <sup>Experimental Warning</sup> |
-| v12.22.1     | Yes               | Yes                                 |
-| v14.0.0      | Yes               | Yes                                 |
-| v14.16.1     | Yes               | Yes                                 |
-
-## In Node or the browser, from file
-
-Copy the contents of the `src` directory to wherever you like (`/js`, `/vendor`, etc), or place the rolled-up version of the library there, and then load the library as an import to whatever script needs to use the `Bezier` constructor using:
-
-```
-import { Bezier } from "/js/vendor/bezier.js";
-
-const b = new Bezier(...);
+```bash
+yarn add kirb
 ```
 
-## Working on the code
+## 🚀 Quick Start
 
-All the code is in the `src` directory, with `bezier.js` as entry point.
+```javascript
+import { Bezier } from 'kirb';
 
-To test code (which automatically applies code formatting and rollup), use `npm test`.
+// Create a cubic Bezier curve
+const curve = new Bezier(0, 0, 100, 25, 200, 75, 300, 100);
 
-There is no explicit build step for the library, `npm test` takes care of everything, except checking for code coverage.
+// Get a point at t=0.5
+const point = curve.get(0.5);
 
-## License
+// Get curve length
+const length = curve.length();
 
-This code is MIT licensed.
+// Split curve at t=0.5
+const { left, right } = curve.split(0.5);
 
-## Engagement
+// Get curve normal at t=0.5
+const normal = curve.normal(0.5);
 
-For comments and questions, [contact me on Mastodon](https://mastodon.social/@TheRealPomax) or file an issue.
+// Find extrema
+const extrema = curve.extrema();
+
+// Get bounding box
+const bbox = curve.bbox();
+```
+
+## 📚 API Overview
+
+### Core Methods
+
+- `get(t)` - Get point at position t (0-1)
+- `compute(t)` - Compute point on curve
+- `derivative(t)` - Get first derivative
+- `normal(t)` - Get normal vector
+- `length()` - Calculate curve length
+- `bbox()` - Get bounding box
+- `extrema()` - Find extreme points
+
+### Geometric Operations
+
+- `split(t1, t2)` - Split curve into segments
+- `offset(distance)` - Create offset curve
+- `outline(d1, d2)` - Generate curve outline
+- `project(point)` - Project point onto curve
+- `intersects(curve)` - Find intersections
+
+### Curve Fitting
+
+- `quadraticFromPoints(p1, p2, p3, t)` - Fit quadratic curve
+- `cubicFromPoints(S, B, E, t)` - Fit cubic curve
+
+### Analysis
+
+- `curvature(t)` - Get curvature at t
+- `inflections()` - Find inflection points
+- `arcs(threshold)` - Approximate with circular arcs
+- `reduce()` - Reduce to simple segments
+
+## 🏗️ Project Structure
+
+```
+src/
+├── bezier.js              # Main export
+├── utils.js               # Utility functions
+├── bezier/
+│   ├── core.js           # Core Bezier class
+│   ├── poly-bezier.js    # Multiple curves
+│   ├── lookup.js         # LUT and search
+│   ├── geometry.js       # Geometric operations
+│   ├── offset.js         # Offset & scaling
+│   ├── intersection.js   # Intersection detection
+│   └── arcs.js          # Arc approximation
+└── utils/
+    ├── constants.js      # Mathematical constants
+    ├── compute.js        # Curve computation
+    ├── geometry.js       # Geometric utilities
+    ├── roots.js          # Root finding
+    ├── intersection.js   # Intersection helpers
+    └── shape.js         # Shape utilities
+```
+
+## 🎯 Use Cases
+
+- **Graphics & Animation** - SVG paths, canvas drawing, animations
+- **Game Development** - Smooth trajectories, camera paths
+- **UI/UX** - Custom easing, path morphing
+- **CAD/CAM** - Technical drawing, manufacturing
+- **Data Visualization** - Smooth curve interpolation
+
+## 📖 Documentation
+
+For detailed documentation, visit the [API Reference](https://github.com/jiwonMe/kirb).
+
+Based on the comprehensive [Bezier Curve Primer](https://pomax.github.io/bezierinfo).
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📄 License
+
+MIT © jiwonMe
+
+---
+
+**Credits:** Built on the foundations of [bezier-js](https://github.com/Pomax/bezierjs) by Pomax, modernized with a modular architecture.
