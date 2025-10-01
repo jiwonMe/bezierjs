@@ -16,6 +16,9 @@ export * from "./utils/intersection.js";
 // Shape utilities
 export * from "./utils/shape.js";
 
+// Error handling
+export * from "./utils/errors.js";
+
 // Create utils object for backward compatibility
 import { Tvalues, Cvalues } from "./utils/constants.js";
 import { arcfn, compute, computeWithRatios, derive, length } from "./utils/compute.js";

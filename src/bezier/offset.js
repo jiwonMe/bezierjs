@@ -1,43 +1,85 @@
 import { sqrt } from "../utils/constants.js";
 import { utils } from "../utils.js";
 import { PolyBezier } from "./poly-bezier.js";
+import { KirbError, ErrorCodes } from "../utils/errors.js";
 
 const offsetMethods = {
-  offset(t, d) {
-    if (typeof d !== "undefined") {
-      const c = this.get(t),
-        n = this.normal(t);
-      const ret = {
-        c: c,
-        n: n,
-        x: c.x + n.x * d,
-        y: c.y + n.y * d,
-      };
-      if (this._3d) {
-        ret.z = c.z + n.z * d;
-      }
-      return ret;
+  /**
+   * Get an offset point at parameter t
+   * @param {number} t - Parameter value (0-1)
+   * @param {number} distance - Offset distance
+   * @returns {Object} Offset point with metadata
+   */
+  offsetPoint(t, distance) {
+    if (t < 0 || t > 1) {
+      throw new KirbError(
+        `Parameter t must be between 0 and 1, got ${t}`,
+        ErrorCodes.OUT_OF_RANGE,
+        { t, validRange: [0, 1] }
+      );
     }
+
+    const c = this.get(t);
+    const n = this.normal(t);
+    const result = {
+      point: {
+        x: c.x + n.x * distance,
+        y: c.y + n.y * distance,
+      },
+      normal: n,
+      curve: c,
+      t: t,
+      distance: distance,
+    };
+
+    if (this._3d) {
+      result.point.z = c.z + n.z * distance;
+    }
+
+    return result;
+  },
+
+  /**
+   * Create offset curve(s)
+   * @param {number} distance - Offset distance
+   * @returns {Array} Array of Bezier curves
+   */
+  offsetCurve(distance) {
     if (this._linear) {
-      const nv = this.normal(0),
-        coords = this.points.map(function (p) {
-          const ret = {
-            x: p.x + t * nv.x,
-            y: p.y + t * nv.y,
-          };
-          if (p.z && nv.z) {
-            ret.z = p.z + t * nv.z;
-          }
-          return ret;
-        });
+      const nv = this.normal(0);
+      const coords = this.points.map(function (p) {
+        const ret = {
+          x: p.x + distance * nv.x,
+          y: p.y + distance * nv.y,
+        };
+        if (p.z && nv.z) {
+          ret.z = p.z + distance * nv.z;
+        }
+        return ret;
+      });
       return [new this.constructor(coords)];
     }
+
     return this.reduce().map(function (s) {
       if (s._linear) {
-        return s.offset(t)[0];
+        return s.offsetCurve(distance)[0];
       }
-      return s.scale(t);
+      return s.scale(distance);
     });
+  },
+
+  /**
+   * Get offset point or curve (legacy method)
+   * @deprecated Use offsetPoint() or offsetCurve() instead
+   * @param {number} t - Parameter or distance
+   * @param {number} d - Distance (optional)
+   * @returns {Object|Array} Offset point or curves
+   */
+  offset(t, d) {
+    if (typeof d !== "undefined") {
+      return this.offsetPoint(t, d);
+    }
+    return this.offsetCurve(t);
   },
 
   translate(v, d1, d2) {
@@ -81,20 +123,23 @@ const offsetMethods = {
 
     const r1 = distanceFn ? distanceFn(0) : d;
     const r2 = distanceFn ? distanceFn(1) : d;
-    const v = [this.offset(0, 10), this.offset(1, 10)];
+    const v = [this.offsetPoint(0, 10), this.offsetPoint(1, 10)];
     const np = [];
-    const o = utils.lli4(v[0], v[0].c, v[1], v[1].c);
+    const o = utils.lli4(v[0].point, v[0].curve, v[1].point, v[1].curve);
 
     if (!o) {
-      throw new Error("cannot scale this curve. Try reducing it first.");
+      throw new KirbError("Cannot scale this curve", ErrorCodes.INVALID_CURVE, {
+        suggestion: "Try reducing the curve first using reduce()",
+        curve: this,
+      });
     }
 
     // move all points by distance 'd' wrt the origin 'o',
     // and move end points by fixed distance along normal.
     [0, 1].forEach(function (t) {
       const p = (np[t * order] = utils.copy(points[t * order]));
-      p.x += (t ? r2 : r1) * v[t].n.x;
-      p.y += (t ? r2 : r1) * v[t].n.y;
+      p.x += (t ? r2 : r1) * v[t].normal.x;
+      p.y += (t ? r2 : r1) * v[t].normal.y;
     });
 
     if (!distanceFn) {

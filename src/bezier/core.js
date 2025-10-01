@@ -80,10 +80,15 @@ class BezierCore {
     this.update();
   }
 
-  static quadraticFromPoints(p1, p2, p3, t) {
-    if (typeof t === "undefined") {
-      t = 0.5;
-    }
+  /**
+   * Create a quadratic Bezier from three points
+   * @param {Object} p1 - Start point
+   * @param {Object} p2 - Mid point
+   * @param {Object} p3 - End point
+   * @param {number} t - Parameter value (default: 0.5)
+   * @returns {Bezier} New quadratic Bezier curve
+   */
+  static quadraticFromPoints(p1, p2, p3, t = 0.5) {
     // shortcuts, although they're really dumb
     if (t === 0) {
       return new this(p2, p2, p3);
@@ -96,10 +101,16 @@ class BezierCore {
     return new this(p1, abc.A, p3);
   }
 
-  static cubicFromPoints(S, B, E, t, d1) {
-    if (typeof t === "undefined") {
-      t = 0.5;
-    }
+  /**
+   * Create a cubic Bezier from three points
+   * @param {Object} S - Start point
+   * @param {Object} B - Mid point
+   * @param {Object} E - End point
+   * @param {number} t - Parameter value (default: 0.5)
+   * @param {number} d1 - Distance (optional)
+   * @returns {Bezier} New cubic Bezier curve
+   */
+  static cubicFromPoints(S, B, E, t = 0.5, d1) {
     const abc = this.getABC(3, S, B, E, t);
     if (typeof d1 === "undefined") {
       d1 = utils.dist(B, abc.C);

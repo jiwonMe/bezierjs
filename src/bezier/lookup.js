@@ -1,10 +1,15 @@
 import { utils } from "../utils.js";
+import { KirbError, ErrorCodes } from "../utils/errors.js";
 
 // LUT(Look-Up Table) 및 조회 관련 메서드들
 const lookupMethods = {
-  getLUT(steps) {
+  /**
+   * Get Look-Up Table for the curve
+   * @param {number} steps - Number of steps (default: 100)
+   * @returns {Array} Array of points
+   */
+  getLUT(steps = 100) {
     this.verify();
-    steps = steps || 100;
     if (this._lut.length === steps + 1) {
       return this._lut;
     }
@@ -21,19 +26,48 @@ const lookupMethods = {
     return this._lut;
   },
 
-  on(point, error) {
-    error = error || 5;
-    const lut = this.getLUT(),
-      hits = [];
-    for (let i = 0, c, t = 0; i < lut.length; i++) {
+  /**
+   * Find parameter t for a point on the curve (legacy method)
+   * @deprecated Use findParameter() instead
+   * @param {Object} point - Point to find
+   * @param {number} error - Tolerance (default: 5)
+   * @returns {number|false} Parameter t or false if not found
+   */
+  on(point, error = 5) {
+    const result = this.findParameter(point, { tolerance: error });
+    return result ? result.t : false;
+  },
+
+  /**
+   * Find parameter t for a point on the curve
+   * @param {Object} point - Point to find
+   * @param {Object} options - Options
+   * @param {number} options.tolerance - Tolerance (default: 5)
+   * @returns {Object|null} Result object or null if not found
+   */
+  findParameter(point, options = {}) {
+    const { tolerance = 5 } = options;
+    const lut = this.getLUT();
+    const hits = [];
+    let totalT = 0;
+
+    for (let i = 0, c; i < lut.length; i++) {
       c = lut[i];
-      if (utils.dist(c, point) < error) {
+      if (utils.dist(c, point) < tolerance) {
         hits.push(c);
-        t += i / lut.length;
+        totalT += i / lut.length;
       }
     }
-    if (!hits.length) return false;
-    return (t /= hits.length);
+
+    if (hits.length === 0) {
+      return null;
+    }
+
+    return {
+      t: totalT / hits.length,
+      hits,
+      tolerance,
+    };
   },
 
   project(point) {
@@ -111,6 +145,77 @@ const lookupMethods = {
     });
 
     return result;
+  },
+
+  /**
+   * Sample n points evenly along the curve
+   * @param {number} count - Number of points to sample (default: 10)
+   * @returns {Array} Array of points
+   */
+  sample(count = 10) {
+    if (count < 2) {
+      throw new KirbError(
+        "Sample count must be at least 2",
+        ErrorCodes.INVALID_PARAMETER,
+        { count }
+      );
+    }
+
+    return Array.from({ length: count }, (_, i) => this.get(i / (count - 1)));
+  },
+
+  /**
+   * Find the closest point on the curve to a given point
+   * @param {Object} point - Target point
+   * @returns {Object} Closest point info with t, distance, and point
+   */
+  closestPoint(point) {
+    const projected = this.project(point);
+    return {
+      point: {
+        x: projected.x,
+        y: projected.y,
+        ...(projected.z ? { z: projected.z } : {}),
+      },
+      t: projected.t,
+      distance: projected.d,
+    };
+  },
+
+  /**
+   * Get comprehensive curve information
+   * @returns {Object} Curve metadata
+   */
+  getInfo() {
+    const typeMap = {
+      1: "linear",
+      2: "quadratic",
+      3: "cubic",
+    };
+
+    return {
+      order: this.order,
+      type: typeMap[this.order] || `order-${this.order}`,
+      is3D: !!this._3d,
+      isLinear: !!this._linear,
+      pointCount: this.points.length,
+      length: this.length(),
+      bbox: this.bbox(),
+      extrema: this.extrema(),
+    };
+  },
+
+  /**
+   * Check if a point is on the curve
+   * @param {Object} point - Point to check
+   * @param {Object} options - Options
+   * @param {number} options.tolerance - Tolerance (default: 1)
+   * @returns {boolean} True if point is on curve
+   */
+  contains(point, options = {}) {
+    const { tolerance = 1 } = options;
+    const result = this.findParameter(point, { tolerance });
+    return result !== null;
   },
 };
 

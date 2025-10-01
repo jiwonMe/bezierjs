@@ -2,8 +2,12 @@ import { abs, cos, sin } from "../utils/constants.js";
 import { utils } from "../utils.js";
 
 const arcsMethods = {
-  arcs(errorThreshold) {
-    errorThreshold = errorThreshold || 0.5;
+  /**
+   * Approximate the curve with circular arcs
+   * @param {number} errorThreshold - Error threshold (default: 0.5)
+   * @returns {Array} Array of arc approximations
+   */
+  arcs(errorThreshold = 0.5) {
     return this._iterate(errorThreshold, []);
   },
 

@@ -1,6 +1,15 @@
-# Source files (we ship dist/)
+# Test files
 test/
+
+# Documentation site
 docs/
+
+# Development documentation (internal)
+.dev-docs/
+API_*.md
+IMPLEMENTATION_*.md
+IMPROVEMENTS_*.md
+PUBLISH_GUIDE.md
 
 # Development files
 .prettierrc
@@ -8,10 +17,18 @@ docs/
 .github/
 *.log
 .DS_Store
+.vscode/
+.idea/
 
-# Keep these
+# Source control
+.git
+.gitignore
+
+# Keep these for npm package
 !dist/
 !src/
 !README.md
+!CHANGELOG.md
 !LICENSE.md
+!FUNDING.md
 !package.json

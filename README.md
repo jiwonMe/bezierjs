@@ -56,6 +56,35 @@ const extrema = curve.extrema();
 const bbox = curve.bbox();
 ```
 
+### 🆕 New API Examples
+
+```javascript
+// Clearer offset API
+const offsetPt = curve.offsetPoint(0.5, 10);
+console.log(offsetPt.point);    // { x, y }
+console.log(offsetPt.normal);   // Normal vector
+console.log(offsetPt.t);        // 0.5
+
+const offsetCurves = curve.offsetCurve(10);  // Array of curves
+
+// Better search
+const result = curve.findParameter(point, { tolerance: 5 });
+if (result) {
+  console.log(result.t);        // Parameter value
+  console.log(result.hits);     // Matching points
+}
+
+// Utility methods
+const points = curve.sample(20);              // 20 evenly spaced points
+const closest = curve.closestPoint(point);    // Closest point on curve
+const info = curve.getInfo();                 // Curve metadata
+
+// Check if point is on curve
+if (curve.contains(point, { tolerance: 1 })) {
+  console.log('Point is on curve!');
+}
+```
+
 ## 📚 API Overview
 
 ### Core Methods
@@ -68,10 +97,26 @@ const bbox = curve.bbox();
 - `bbox()` - Get bounding box
 - `extrema()` - Find extreme points
 
+### 🆕 New & Improved Methods
+
+#### Offset Operations (Clearer API)
+- `offsetPoint(t, distance)` - Get offset point at t ✨
+- `offsetCurve(distance)` - Create offset curve ✨
+- `offset(t, d?)` - Legacy method (still works)
+
+#### Search & Analysis
+- `findParameter(point, options)` - Find parameter for point ✨
+- `closestPoint(point)` - Find closest point on curve ✨
+- `contains(point, options)` - Check if point is on curve ✨
+- `on(point, error)` - Legacy method (still works)
+
+#### Utility Methods
+- `sample(count)` - Sample n points evenly ✨
+- `getInfo()` - Get curve metadata ✨
+
 ### Geometric Operations
 
 - `split(t1, t2)` - Split curve into segments
-- `offset(distance)` - Create offset curve
 - `outline(d1, d2)` - Generate curve outline
 - `project(point)` - Project point onto curve
 - `intersects(curve)` - Find intersections
@@ -87,6 +132,21 @@ const bbox = curve.bbox();
 - `inflections()` - Find inflection points
 - `arcs(threshold)` - Approximate with circular arcs
 - `reduce()` - Reduce to simple segments
+
+### Error Handling
+
+```javascript
+import { Bezier, KirbError, ErrorCodes } from 'kirb';
+
+try {
+  curve.offsetPoint(2, 10);  // Out of range!
+} catch (e) {
+  if (e instanceof KirbError) {
+    console.log(e.code);      // 'OUT_OF_RANGE'
+    console.log(e.details);   // { t: 2, validRange: [0, 1] }
+  }
+}
+```
 
 ## 🏗️ Project Structure
 

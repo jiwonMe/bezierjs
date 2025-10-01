@@ -33,5 +33,8 @@ Object.assign(Bezier.prototype, arcsMethods);
 // Set the Bezier class for utils that need it
 setBezierClass(Bezier);
 
+// Export error classes for better error handling
+export { KirbError, ErrorCodes } from "./utils/errors.js";
+
 export { Bezier };
 

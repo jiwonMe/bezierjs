@@ -19,7 +19,9 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 // src/bezier.js
 var bezier_exports = {};
 __export(bezier_exports, {
-  Bezier: () => Bezier
+  Bezier: () => Bezier,
+  ErrorCodes: () => ErrorCodes,
+  KirbError: () => KirbError
 });
 module.exports = __toCommonJS(bezier_exports);
 
@@ -89,58 +91,58 @@ var Cvalues = [
 ];
 
 // src/utils/compute.js
-var arcfn = function(t2, derivativeFn) {
-  const d = derivativeFn(t2);
+var arcfn = function(t, derivativeFn) {
+  const d = derivativeFn(t);
   let l = d.x * d.x + d.y * d.y;
   if (typeof d.z !== "undefined") {
     l += d.z * d.z;
   }
   return sqrt(l);
 };
-var compute = function(t2, points, _3d) {
-  if (t2 === 0) {
+var compute = function(t, points, _3d) {
+  if (t === 0) {
     points[0].t = 0;
     return points[0];
   }
   const order = points.length - 1;
-  if (t2 === 1) {
+  if (t === 1) {
     points[order].t = 1;
     return points[order];
   }
-  const mt = 1 - t2;
+  const mt = 1 - t;
   let p = points;
   if (order === 0) {
-    points[0].t = t2;
+    points[0].t = t;
     return points[0];
   }
   if (order === 1) {
     const ret = {
-      x: mt * p[0].x + t2 * p[1].x,
-      y: mt * p[0].y + t2 * p[1].y,
-      t: t2
+      x: mt * p[0].x + t * p[1].x,
+      y: mt * p[0].y + t * p[1].y,
+      t
     };
     if (_3d) {
-      ret.z = mt * p[0].z + t2 * p[1].z;
+      ret.z = mt * p[0].z + t * p[1].z;
     }
     return ret;
   }
   if (order < 4) {
-    let mt2 = mt * mt, t22 = t2 * t2, a, b, c, d = 0;
+    let mt2 = mt * mt, t2 = t * t, a, b, c, d = 0;
     if (order === 2) {
       p = [p[0], p[1], p[2], ZERO];
       a = mt2;
-      b = mt * t2 * 2;
-      c = t22;
+      b = mt * t * 2;
+      c = t2;
     } else if (order === 3) {
       a = mt2 * mt;
-      b = mt2 * t2 * 3;
-      c = mt * t22 * 3;
-      d = t2 * t22;
+      b = mt2 * t * 3;
+      c = mt * t2 * 3;
+      d = t * t2;
     }
     const ret = {
       x: a * p[0].x + b * p[1].x + c * p[2].x + d * p[3].x,
       y: a * p[0].y + b * p[1].y + c * p[2].y + d * p[3].y,
-      t: t2
+      t
     };
     if (_3d) {
       ret.z = a * p[0].z + b * p[1].z + c * p[2].z + d * p[3].z;
@@ -151,55 +153,55 @@ var compute = function(t2, points, _3d) {
   while (dCpts.length > 1) {
     for (let i = 0; i < dCpts.length - 1; i++) {
       dCpts[i] = {
-        x: dCpts[i].x + (dCpts[i + 1].x - dCpts[i].x) * t2,
-        y: dCpts[i].y + (dCpts[i + 1].y - dCpts[i].y) * t2
+        x: dCpts[i].x + (dCpts[i + 1].x - dCpts[i].x) * t,
+        y: dCpts[i].y + (dCpts[i + 1].y - dCpts[i].y) * t
       };
       if (typeof dCpts[i].z !== "undefined") {
-        dCpts[i].z = dCpts[i].z + (dCpts[i + 1].z - dCpts[i].z) * t2;
+        dCpts[i].z = dCpts[i].z + (dCpts[i + 1].z - dCpts[i].z) * t;
       }
     }
     dCpts.splice(dCpts.length - 1, 1);
   }
-  dCpts[0].t = t2;
+  dCpts[0].t = t;
   return dCpts[0];
 };
-var computeWithRatios = function(t2, points, ratios, _3d) {
-  const mt = 1 - t2, r = ratios, p = points;
+var computeWithRatios = function(t, points, ratios, _3d) {
+  const mt = 1 - t, r = ratios, p = points;
   let f1 = r[0], f2 = r[1], f3 = r[2], f4 = r[3], d;
   f1 *= mt;
-  f2 *= t2;
+  f2 *= t;
   if (p.length === 2) {
     d = f1 + f2;
     return {
       x: (f1 * p[0].x + f2 * p[1].x) / d,
       y: (f1 * p[0].y + f2 * p[1].y) / d,
       z: !_3d ? false : (f1 * p[0].z + f2 * p[1].z) / d,
-      t: t2
+      t
     };
   }
   f1 *= mt;
   f2 *= 2 * mt;
-  f3 *= t2 * t2;
+  f3 *= t * t;
   if (p.length === 3) {
     d = f1 + f2 + f3;
     return {
       x: (f1 * p[0].x + f2 * p[1].x + f3 * p[2].x) / d,
       y: (f1 * p[0].y + f2 * p[1].y + f3 * p[2].y) / d,
       z: !_3d ? false : (f1 * p[0].z + f2 * p[1].z + f3 * p[2].z) / d,
-      t: t2
+      t
     };
   }
   f1 *= mt;
   f2 *= 1.5 * mt;
   f3 *= 3 * mt;
-  f4 *= t2 * t2 * t2;
+  f4 *= t * t * t;
   if (p.length === 4) {
     d = f1 + f2 + f3 + f4;
     return {
       x: (f1 * p[0].x + f2 * p[1].x + f3 * p[2].x + f4 * p[3].x) / d,
       y: (f1 * p[0].y + f2 * p[1].y + f3 * p[2].y + f4 * p[3].y) / d,
       z: !_3d ? false : (f1 * p[0].z + f2 * p[1].z + f3 * p[2].z + f4 * p[3].z) / d,
-      t: t2
+      t
     };
   }
 };
@@ -225,9 +227,9 @@ var derive = function(points, _3d) {
 var length = function(derivativeFn) {
   const z = 0.5, len = Tvalues.length;
   let sum = 0;
-  for (let i = 0, t2; i < len; i++) {
-    t2 = z * Tvalues[i] + z;
-    sum += Cvalues[i] * arcfn(t2, derivativeFn);
+  for (let i = 0, t; i < len; i++) {
+    t = z * Tvalues[i] + z;
+    sum += Cvalues[i] * arcfn(t, derivativeFn);
   }
   return z * sum;
 };
@@ -290,28 +292,28 @@ var closest = function(LUT, point) {
   });
   return { mdist, mpos };
 };
-var abcratio = function(t2, n) {
+var abcratio = function(t, n) {
   if (n !== 2 && n !== 3) {
     return false;
   }
-  if (typeof t2 === "undefined") {
-    t2 = 0.5;
-  } else if (t2 === 0 || t2 === 1) {
-    return t2;
+  if (typeof t === "undefined") {
+    t = 0.5;
+  } else if (t === 0 || t === 1) {
+    return t;
   }
-  const bottom = pow(t2, n) + pow(1 - t2, n), top = bottom - 1;
+  const bottom = pow(t, n) + pow(1 - t, n), top = bottom - 1;
   return abs(top / bottom);
 };
-var projectionratio = function(t2, n) {
+var projectionratio = function(t, n) {
   if (n !== 2 && n !== 3) {
     return false;
   }
-  if (typeof t2 === "undefined") {
-    t2 = 0.5;
-  } else if (t2 === 0 || t2 === 1) {
-    return t2;
+  if (typeof t === "undefined") {
+    t = 0.5;
+  } else if (t === 0 || t === 1) {
+    return t;
   }
-  const top = pow(1 - t2, n), bottom = pow(t2, n) + top;
+  const top = pow(1 - t, n), bottom = pow(t, n) + top;
   return top / bottom;
 };
 var lli8 = function(x1, y1, x2, y2, x3, y3, x4, y4) {
@@ -346,8 +348,8 @@ var roots = function(points, line) {
   line = line || { p1: { x: 0, y: 0 }, p2: { x: 1, y: 0 } };
   const order = points.length - 1;
   const aligned = align(points, line);
-  const reduce = function(t2) {
-    return 0 <= t2 && t2 <= 1;
+  const reduce = function(t) {
+    return 0 <= t && t <= 1;
   };
   if (order === 2) {
     const a2 = aligned[0].y, b2 = aligned[1].y, c2 = aligned[2].y, d2 = a2 - 2 * b2 + c2;
@@ -377,7 +379,7 @@ var roots = function(points, line) {
   const p = (3 * b - a * a) / 3, p3 = p / 3, q = (2 * a * a * a - 9 * a * b + 27 * c) / 27, q2 = q / 2, discriminant = q2 * q2 + p3 * p3 * p3;
   let u1, v1, x1, x2, x3;
   if (discriminant < 0) {
-    const mp3 = -p / 3, mp33 = mp3 * mp3 * mp3, r = sqrt(mp33), t2 = -q / (2 * r), cosphi = t2 < -1 ? -1 : t2 > 1 ? 1 : t2, phi = acos(cosphi), crtr = crt(r), t1 = 2 * crtr;
+    const mp3 = -p / 3, mp33 = mp3 * mp3 * mp3, r = sqrt(mp33), t = -q / (2 * r), cosphi = t < -1 ? -1 : t > 1 ? 1 : t, phi = acos(cosphi), crtr = crt(r), t1 = 2 * crtr;
     x1 = t1 * (tau / 3) - a / 3;
     x2 = t1 * ((phi + tau) / 3) - a / 3;
     x3 = t1 * ((phi + 2 * tau) / 3) - a / 3;
@@ -414,10 +416,10 @@ var droots = function(p) {
   }
   return [];
 };
-var curvature = function(t2, d1, d2, _3d, kOnly) {
+var curvature = function(t, d1, d2, _3d, kOnly) {
   let num, dnm, adk, dk, k = 0, r = 0;
-  const d = compute(t2, d1);
-  const dd = compute(t2, d2);
+  const d = compute(t, d1);
+  const dd = compute(t, d2);
   const qdsum = d.x * d.x + d.y * d.y;
   if (_3d) {
     num = sqrt(
@@ -434,8 +436,8 @@ var curvature = function(t2, d1, d2, _3d, kOnly) {
   k = num / dnm;
   r = dnm / num;
   if (!kOnly) {
-    const pk = curvature(t2 - 1e-3, d1, d2, _3d, true).k;
-    const nk = curvature(t2 + 1e-3, d1, d2, _3d, true).k;
+    const pk = curvature(t - 1e-3, d1, d2, _3d, true).k;
+    const nk = curvature(t + 1e-3, d1, d2, _3d, true).k;
     dk = (nk - k + (k - pk)) / 2;
     adk = (abs(nk - k) + abs(k - pk)) / 2;
   }
@@ -447,9 +449,9 @@ var inflections = function(points) {
   const p = align(points, { p1: points[0], p2: points.slice(-1)[0] }), a = p[2].x * p[1].y, b = p[3].x * p[1].y, c = p[1].x * p[2].y, d = p[3].x * p[2].y, v1 = 18 * (-3 * a + 2 * b + 3 * c - d), v2 = 18 * (3 * a - b - 3 * c), v3 = 18 * (c - a);
   if (approximately(v1, 0)) {
     if (!approximately(v2, 0)) {
-      let t2 = -v3 / v2;
-      if (0 <= t2 && t2 <= 1)
-        return [t2];
+      let t = -v3 / v2;
+      if (0 <= t && t <= 1)
+        return [t];
     }
     return [];
   }
@@ -468,12 +470,12 @@ var inflections = function(points) {
 // src/utils/intersection.js
 var bboxoverlap = function(b1, b2) {
   const dims = ["x", "y"], len = dims.length;
-  for (let i = 0, dim, l, t2, d; i < len; i++) {
+  for (let i = 0, dim, l, t, d; i < len; i++) {
     dim = dims[i];
     l = b1[dim].mid;
-    t2 = b2[dim].mid;
+    t = b2[dim].mid;
     d = (b1[dim].size + b2[dim].size) / 2;
-    if (abs(l - t2) >= d)
+    if (abs(l - t) >= d)
       return false;
   }
   return true;
@@ -606,7 +608,7 @@ var shapeintersections = function(s1, bbox1, s2, bbox2, curveIntersectionThresho
 var getminmax = function(curve, d, list) {
   if (!list)
     return { min: 0, max: 0 };
-  let min2 = nMax, max2 = nMin, t2, c;
+  let min2 = nMax, max2 = nMin, t, c;
   if (list.indexOf(0) === -1) {
     list = [0].concat(list);
   }
@@ -614,8 +616,8 @@ var getminmax = function(curve, d, list) {
     list.push(1);
   }
   for (let i = 0, len = list.length; i < len; i++) {
-    t2 = list[i];
-    c = curve.get(t2);
+    t = list[i];
+    c = curve.get(t);
     if (c[d] < min2) {
       min2 = c[d];
     }
@@ -666,6 +668,23 @@ var makeshape = function(forward, back, curveIntersectionThreshold) {
     );
   };
   return shape;
+};
+
+// src/utils/errors.js
+var KirbError = class extends Error {
+  constructor(message, code, details = {}) {
+    super(message);
+    this.name = "KirbError";
+    this.code = code;
+    this.details = details;
+  }
+};
+var ErrorCodes = {
+  INVALID_CURVE: "INVALID_CURVE",
+  INVALID_PARAMETER: "INVALID_PARAMETER",
+  OUT_OF_RANGE: "OUT_OF_RANGE",
+  COMPUTATION_FAILED: "COMPUTATION_FAILED",
+  INVALID_INPUT: "INVALID_INPUT"
 };
 
 // src/utils.js
@@ -815,38 +834,32 @@ var BezierCore = class {
     this.dimlen = dims.length;
     const aligned = utils.align(points, { p1: points[0], p2: points[order] });
     const baselength = utils.dist(points[0], points[order]);
-    this._linear = aligned.reduce((t2, p) => t2 + abs(p.y), 0) < baselength / 50;
+    this._linear = aligned.reduce((t, p) => t + abs(p.y), 0) < baselength / 50;
     this._lut = [];
     this._t1 = 0;
     this._t2 = 1;
     this.update();
   }
-  static quadraticFromPoints(p1, p2, p3, t2) {
-    if (typeof t2 === "undefined") {
-      t2 = 0.5;
-    }
-    if (t2 === 0) {
+  static quadraticFromPoints(p1, p2, p3, t = 0.5) {
+    if (t === 0) {
       return new this(p2, p2, p3);
     }
-    if (t2 === 1) {
+    if (t === 1) {
       return new this(p1, p2, p2);
     }
-    const abc = this.getABC(2, p1, p2, p3, t2);
+    const abc = this.getABC(2, p1, p2, p3, t);
     return new this(p1, abc.A, p3);
   }
-  static cubicFromPoints(S, B, E, t2, d1) {
-    if (typeof t2 === "undefined") {
-      t2 = 0.5;
-    }
-    const abc = this.getABC(3, S, B, E, t2);
+  static cubicFromPoints(S, B, E, t = 0.5, d1) {
+    const abc = this.getABC(3, S, B, E, t);
     if (typeof d1 === "undefined") {
       d1 = utils.dist(B, abc.C);
     }
-    const d2 = d1 * (1 - t2) / t2;
+    const d2 = d1 * (1 - t) / t;
     const selen = utils.dist(S, E), lx = (E.x - S.x) / selen, ly = (E.y - S.y) / selen, bx1 = d1 * lx, by1 = d1 * ly, bx2 = d2 * lx, by2 = d2 * ly;
-    const e1 = { x: B.x - bx1, y: B.y - by1 }, e2 = { x: B.x + bx2, y: B.y + by2 }, A = abc.A, v1 = { x: A.x + (e1.x - A.x) / (1 - t2), y: A.y + (e1.y - A.y) / (1 - t2) }, v2 = { x: A.x + (e2.x - A.x) / t2, y: A.y + (e2.y - A.y) / t2 }, nc1 = { x: S.x + (v1.x - S.x) / t2, y: S.y + (v1.y - S.y) / t2 }, nc2 = {
-      x: E.x + (v2.x - E.x) / (1 - t2),
-      y: E.y + (v2.y - E.y) / (1 - t2)
+    const e1 = { x: B.x - bx1, y: B.y - by1 }, e2 = { x: B.x + bx2, y: B.y + by2 }, A = abc.A, v1 = { x: A.x + (e1.x - A.x) / (1 - t), y: A.y + (e1.y - A.y) / (1 - t) }, v2 = { x: A.x + (e2.x - A.x) / t, y: A.y + (e2.y - A.y) / t }, nc1 = { x: S.x + (v1.x - S.x) / t, y: S.y + (v1.y - S.y) / t }, nc2 = {
+      x: E.x + (v2.x - E.x) / (1 - t),
+      y: E.y + (v2.y - E.y) / (1 - t)
     };
     return new this(S, nc1, nc2, E);
   }
@@ -907,33 +920,33 @@ var BezierCore = class {
   length() {
     return utils.length(this.derivative.bind(this));
   }
-  static getABC(order = 2, S, B, E, t2 = 0.5) {
-    const u = utils.projectionratio(t2, order), um = 1 - u, C = {
+  static getABC(order = 2, S, B, E, t = 0.5) {
+    const u = utils.projectionratio(t, order), um = 1 - u, C = {
       x: u * S.x + um * E.x,
       y: u * S.y + um * E.y
-    }, s = utils.abcratio(t2, order), A = {
+    }, s = utils.abcratio(t, order), A = {
       x: B.x + (B.x - C.x) / s,
       y: B.y + (B.y - C.y) / s
     };
     return { A, B, C, S, E };
   }
-  getABC(t2, B) {
-    B = B || this.get(t2);
+  getABC(t, B) {
+    B = B || this.get(t);
     let S = this.points[0];
     let E = this.points[this.order];
-    return this.constructor.getABC(this.order, S, B, E, t2);
+    return this.constructor.getABC(this.order, S, B, E, t);
   }
-  get(t2) {
-    return this.compute(t2);
+  get(t) {
+    return this.compute(t);
   }
   point(idx) {
     return this.points[idx];
   }
-  compute(t2) {
+  compute(t) {
     if (this.ratios) {
-      return utils.computeWithRatios(t2, this.points, this.ratios, this._3d);
+      return utils.computeWithRatios(t, this.points, this.ratios, this._3d);
     }
-    return utils.compute(t2, this.points, this._3d, this.ratios);
+    return utils.compute(t, this.points, this._3d, this.ratios);
   }
   raise() {
     const p = this.points, np = [p[0]], k = p.length;
@@ -948,14 +961,14 @@ var BezierCore = class {
     np[k] = p[k - 1];
     return new this.constructor(np);
   }
-  derivative(t2) {
-    return utils.compute(t2, this.dpoints[0], this._3d);
+  derivative(t) {
+    return utils.compute(t, this.dpoints[0], this._3d);
   }
-  dderivative(t2) {
-    return utils.compute(t2, this.dpoints[1], this._3d);
+  dderivative(t) {
+    return utils.compute(t, this.dpoints[1], this._3d);
   }
-  curvature(t2) {
-    return utils.curvature(t2, this.dpoints[0], this.dpoints[1], this._3d);
+  curvature(t) {
+    return utils.curvature(t, this.dpoints[0], this.dpoints[1], this._3d);
   }
   inflections() {
     return utils.inflections(this.points);
@@ -964,47 +977,57 @@ var BezierCore = class {
 
 // src/bezier/lookup.js
 var lookupMethods = {
-  getLUT(steps) {
+  getLUT(steps = 100) {
     this.verify();
-    steps = steps || 100;
     if (this._lut.length === steps + 1) {
       return this._lut;
     }
     this._lut = [];
     steps++;
     this._lut = [];
-    for (let i = 0, p, t2; i < steps; i++) {
-      t2 = i / (steps - 1);
-      p = this.compute(t2);
-      p.t = t2;
+    for (let i = 0, p, t; i < steps; i++) {
+      t = i / (steps - 1);
+      p = this.compute(t);
+      p.t = t;
       this._lut.push(p);
     }
     return this._lut;
   },
-  on(point, error) {
-    error = error || 5;
-    const lut = this.getLUT(), hits = [];
-    for (let i = 0, c, t2 = 0; i < lut.length; i++) {
+  on(point, error = 5) {
+    const result = this.findParameter(point, { tolerance: error });
+    return result ? result.t : false;
+  },
+  findParameter(point, options = {}) {
+    const { tolerance = 5 } = options;
+    const lut = this.getLUT();
+    const hits = [];
+    let totalT = 0;
+    for (let i = 0, c; i < lut.length; i++) {
       c = lut[i];
-      if (utils.dist(c, point) < error) {
+      if (utils.dist(c, point) < tolerance) {
         hits.push(c);
-        t2 += i / lut.length;
+        totalT += i / lut.length;
       }
     }
-    if (!hits.length)
-      return false;
-    return t /= hits.length;
+    if (hits.length === 0) {
+      return null;
+    }
+    return {
+      t: totalT / hits.length,
+      hits,
+      tolerance
+    };
   },
   project(point) {
     const LUT = this.getLUT(), l = LUT.length - 1, closest2 = utils.closest(LUT, point), mpos = closest2.mpos, t1 = (mpos - 1) / l, t2 = (mpos + 1) / l, step = 0.1 / l;
-    let mdist = closest2.mdist, t3 = t1, ft = t3, p;
+    let mdist = closest2.mdist, t = t1, ft = t, p;
     mdist += 1;
-    for (let d; t3 < t2 + step; t3 += step) {
-      p = this.compute(t3);
+    for (let d; t < t2 + step; t += step) {
+      p = this.compute(t);
       d = utils.dist(point, p);
       if (d < mdist) {
         mdist = d;
-        ft = t3;
+        ft = t;
       }
     }
     ft = ft < 0 ? 0 : ft > 1 ? 1 : ft;
@@ -1040,8 +1063,8 @@ var lookupMethods = {
           p = this.dpoints[1].map(mfn);
           result[dim] = result[dim].concat(utils.droots(p));
         }
-        result[dim] = result[dim].filter(function(t2) {
-          return t2 >= 0 && t2 <= 1;
+        result[dim] = result[dim].filter(function(t) {
+          return t >= 0 && t <= 1;
         });
         roots2 = roots2.concat(result[dim].sort(utils.numberSort));
       }.bind(this)
@@ -1050,6 +1073,50 @@ var lookupMethods = {
       return roots2.indexOf(v) === idx;
     });
     return result;
+  },
+  sample(count = 10) {
+    if (count < 2) {
+      throw new KirbError(
+        "Sample count must be at least 2",
+        ErrorCodes.INVALID_PARAMETER,
+        { count }
+      );
+    }
+    return Array.from({ length: count }, (_, i) => this.get(i / (count - 1)));
+  },
+  closestPoint(point) {
+    const projected = this.project(point);
+    return {
+      point: {
+        x: projected.x,
+        y: projected.y,
+        ...projected.z ? { z: projected.z } : {}
+      },
+      t: projected.t,
+      distance: projected.d
+    };
+  },
+  getInfo() {
+    const typeMap = {
+      1: "linear",
+      2: "quadratic",
+      3: "cubic"
+    };
+    return {
+      order: this.order,
+      type: typeMap[this.order] || `order-${this.order}`,
+      is3D: !!this._3d,
+      isLinear: !!this._linear,
+      pointCount: this.points.length,
+      length: this.length(),
+      bbox: this.bbox(),
+      extrema: this.extrema()
+    };
+  },
+  contains(point, options = {}) {
+    const { tolerance = 1 } = options;
+    const result = this.findParameter(point, { tolerance });
+    return result !== null;
   }
 };
 
@@ -1061,16 +1128,16 @@ var geometryMethods = {
       utils.align(p, { p1: p[0], p2: p[p.length - 1] })
     );
   },
-  normal(t2) {
-    return this._3d ? this.__normal3(t2) : this.__normal2(t2);
+  normal(t) {
+    return this._3d ? this.__normal3(t) : this.__normal2(t);
   },
-  __normal2(t2) {
-    const d = this.derivative(t2);
+  __normal2(t) {
+    const d = this.derivative(t);
     const q = sqrt(d.x * d.x + d.y * d.y);
-    return { t: t2, x: -d.y / q, y: d.x / q };
+    return { t, x: -d.y / q, y: d.x / q };
   },
-  __normal3(t2) {
-    const r1 = this.derivative(t2), r2 = this.derivative(t2 + 0.01), q1 = sqrt(r1.x * r1.x + r1.y * r1.y + r1.z * r1.z), q2 = sqrt(r2.x * r2.x + r2.y * r2.y + r2.z * r2.z);
+  __normal3(t) {
+    const r1 = this.derivative(t), r2 = this.derivative(t + 0.01), q1 = sqrt(r1.x * r1.x + r1.y * r1.y + r1.z * r1.z), q2 = sqrt(r2.x * r2.x + r2.y * r2.y + r2.z * r2.z);
     r1.x /= q1;
     r1.y /= q1;
     r1.z /= q1;
@@ -1098,14 +1165,14 @@ var geometryMethods = {
       c.z * c.z
     ];
     const n = {
-      t: t2,
+      t,
       x: R[0] * r1.x + R[1] * r1.y + R[2] * r1.z,
       y: R[3] * r1.x + R[4] * r1.y + R[5] * r1.z,
       z: R[6] * r1.x + R[7] * r1.y + R[8] * r1.z
     };
     return n;
   },
-  hull(t2) {
+  hull(t) {
     let p = this.points, _p = [], q = [], idx = 0;
     q[idx++] = p[0];
     q[idx++] = p[1];
@@ -1116,7 +1183,7 @@ var geometryMethods = {
     while (p.length > 1) {
       _p = [];
       for (let i = 0, pt, l = p.length - 1; i < l; i++) {
-        pt = utils.lerp(t2, p[i], p[i + 1]);
+        pt = utils.lerp(t, p[i], p[i + 1]);
         q[idx++] = pt;
         _p.push(pt);
       }
@@ -1212,28 +1279,41 @@ var geometryMethods = {
 
 // src/bezier/offset.js
 var offsetMethods = {
-  offset(t2, d) {
-    if (typeof d !== "undefined") {
-      const c = this.get(t2), n = this.normal(t2);
-      const ret = {
-        c,
-        n,
-        x: c.x + n.x * d,
-        y: c.y + n.y * d
-      };
-      if (this._3d) {
-        ret.z = c.z + n.z * d;
-      }
-      return ret;
+  offsetPoint(t, distance) {
+    if (t < 0 || t > 1) {
+      throw new KirbError(
+        `Parameter t must be between 0 and 1, got ${t}`,
+        ErrorCodes.OUT_OF_RANGE,
+        { t, validRange: [0, 1] }
+      );
     }
+    const c = this.get(t);
+    const n = this.normal(t);
+    const result = {
+      point: {
+        x: c.x + n.x * distance,
+        y: c.y + n.y * distance
+      },
+      normal: n,
+      curve: c,
+      t,
+      distance
+    };
+    if (this._3d) {
+      result.point.z = c.z + n.z * distance;
+    }
+    return result;
+  },
+  offsetCurve(distance) {
     if (this._linear) {
-      const nv = this.normal(0), coords = this.points.map(function(p) {
+      const nv = this.normal(0);
+      const coords = this.points.map(function(p) {
         const ret = {
-          x: p.x + t2 * nv.x,
-          y: p.y + t2 * nv.y
+          x: p.x + distance * nv.x,
+          y: p.y + distance * nv.y
         };
         if (p.z && nv.z) {
-          ret.z = p.z + t2 * nv.z;
+          ret.z = p.z + distance * nv.z;
         }
         return ret;
       });
@@ -1241,10 +1321,16 @@ var offsetMethods = {
     }
     return this.reduce().map(function(s) {
       if (s._linear) {
-        return s.offset(t2)[0];
+        return s.offsetCurve(distance)[0];
       }
-      return s.scale(t2);
+      return s.scale(distance);
     });
+  },
+  offset(t, d) {
+    if (typeof d !== "undefined") {
+      return this.offsetPoint(t, d);
+    }
+    return this.offsetCurve(t);
   },
   translate(v, d1, d2) {
     d2 = typeof d2 === "number" ? d2 : d1;
@@ -1277,43 +1363,46 @@ var offsetMethods = {
     }
     const r1 = distanceFn ? distanceFn(0) : d;
     const r2 = distanceFn ? distanceFn(1) : d;
-    const v = [this.offset(0, 10), this.offset(1, 10)];
+    const v = [this.offsetPoint(0, 10), this.offsetPoint(1, 10)];
     const np = [];
-    const o = utils.lli4(v[0], v[0].c, v[1], v[1].c);
+    const o = utils.lli4(v[0].point, v[0].curve, v[1].point, v[1].curve);
     if (!o) {
-      throw new Error("cannot scale this curve. Try reducing it first.");
+      throw new KirbError("Cannot scale this curve", ErrorCodes.INVALID_CURVE, {
+        suggestion: "Try reducing the curve first using reduce()",
+        curve: this
+      });
     }
-    [0, 1].forEach(function(t2) {
-      const p = np[t2 * order] = utils.copy(points[t2 * order]);
-      p.x += (t2 ? r2 : r1) * v[t2].n.x;
-      p.y += (t2 ? r2 : r1) * v[t2].n.y;
+    [0, 1].forEach(function(t) {
+      const p = np[t * order] = utils.copy(points[t * order]);
+      p.x += (t ? r2 : r1) * v[t].normal.x;
+      p.y += (t ? r2 : r1) * v[t].normal.y;
     });
     if (!distanceFn) {
-      [0, 1].forEach((t2) => {
-        if (order === 2 && !!t2)
+      [0, 1].forEach((t) => {
+        if (order === 2 && !!t)
           return;
-        const p = np[t2 * order];
-        const d2 = this.derivative(t2);
+        const p = np[t * order];
+        const d2 = this.derivative(t);
         const p2 = { x: p.x + d2.x, y: p.y + d2.y };
-        np[t2 + 1] = utils.lli4(p, p2, o, points[t2 + 1]);
+        np[t + 1] = utils.lli4(p, p2, o, points[t + 1]);
       });
       return new this.constructor(np);
     }
-    [0, 1].forEach(function(t2) {
-      if (order === 2 && !!t2)
+    [0, 1].forEach(function(t) {
+      if (order === 2 && !!t)
         return;
-      var p = points[t2 + 1];
+      var p = points[t + 1];
       var ov = {
         x: p.x - o.x,
         y: p.y - o.y
       };
-      var rc = distanceFn ? distanceFn((t2 + 1) / order) : d;
+      var rc = distanceFn ? distanceFn((t + 1) / order) : d;
       if (distanceFn && !clockwise)
         rc = -rc;
       var m = sqrt(ov.x * ov.x + ov.y * ov.y);
       ov.x /= m;
       ov.y /= m;
-      np[t2 + 1] = {
+      np[t + 1] = {
         x: p.x + rc * ov.x,
         y: p.y + rc * ov.y
       };
@@ -1422,8 +1511,8 @@ var intersectionMethods = {
   },
   lineIntersects(line) {
     const mx = min(line.p1.x, line.p2.x), my = min(line.p1.y, line.p2.y), MX = max(line.p1.x, line.p2.x), MY = max(line.p1.y, line.p2.y);
-    return utils.roots(this.points, line).filter((t2) => {
-      var p = this.get(t2);
+    return utils.roots(this.points, line).filter((t) => {
+      var p = this.get(t);
       return utils.between(p.x, mx, MX) && utils.between(p.y, my, MY);
     });
   },
@@ -1463,8 +1552,7 @@ var intersectionMethods = {
 
 // src/bezier/arcs.js
 var arcsMethods = {
-  arcs(errorThreshold) {
-    errorThreshold = errorThreshold || 0.5;
+  arcs(errorThreshold = 0.5) {
     return this._iterate(errorThreshold, []);
   },
   _error(pc, np1, s, e) {
@@ -1539,5 +1627,7 @@ Object.assign(Bezier.prototype, arcsMethods);
 setBezierClass(Bezier);
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
-  Bezier
+  Bezier,
+  ErrorCodes,
+  KirbError
 });
